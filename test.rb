@@ -99,6 +99,20 @@ class DefaultValuePluginTest < TestCaseClass
     assert_equal :green, Book.create.color
   end
 
+  def test_default_value_on_attribute_methods
+    define_model_class do
+      serialize :stuff
+      default_value_for :color, :green
+      def color; (self.stuff || {})[:color]; end
+      def color=(val)
+        self.stuff ||= {}
+        self.stuff[:color] = val
+      end
+    end
+    object = TestClass.create
+    assert_equal :green, object.color
+  end
+
   def test_default_value_can_be_passed_as_argument
     Book.default_value_for(:number, 1234)
     assert_equal 1234, Book.new.number
