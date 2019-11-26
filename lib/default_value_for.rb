@@ -125,6 +125,7 @@ module DefaultValueFor
 
   module InstanceMethods
     def initialize(attributes = nil, options = {})
+      attributes = attributes.to_h if attributes.respond_to?(:to_h)
       @initialization_attributes = attributes.is_a?(Hash) ? attributes.stringify_keys : {}
 
       unless options[:without_protection]
@@ -158,7 +159,7 @@ module DefaultValueFor
         connection_default_value_defined = new_record? && respond_to?("#{attribute}_changed?") && !__send__("#{attribute}_changed?")
 
         attribute_blank = if attributes.has_key?(attribute)
-                            column = self.class.columns.detect { |c| c.name == attribute }
+                            column = self.class.columns_hash[attribute]
                             if column && column.type == :boolean
                               attributes[attribute].nil?
                             else
