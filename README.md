@@ -20,14 +20,14 @@ u.last_seen  # => Mon Sep 22 17:28:38 +0200 2008
 
 ## Installation
 
-### Rails 3.2 - 4.1 / Ruby 1.9.3 and higher
+### Rails 3.2 - 4.2 / Ruby 1.9.3 and higher
 
-The current version of default_value_for (3.0.x) is compatible with Rails 3.2 or higher, and Ruby 1.9.3 and higher.
+The current version of default_value_for (3.x+) is compatible with Rails 3.2 or higher, and Ruby 1.9.3 and higher.
 
 Add it to your Gemfile:
 
 ```ruby
-gem "default_value_for", "~> 3.0.0"
+gem "default_value_for", "~> 3.0"
 ```
 
 This gem is signed using PGP with the Phusion Software Signing key: http://www.phusion.nl/about/gpg. That key in turn is signed by the rubygems-openpgp Certificate Authority: http://www.rubygems-openpgp-ca.org/.
@@ -364,7 +364,7 @@ Also, stick with the following rules:
 
 * There is no need to +alias_method_chain+ your initialize method in models that don't use `default_value_for`.
 
-* Make sure that +alias_method_chain+ is called *after* the last `default_value_for` occurance.
+* Make sure that +alias_method_chain+ is called *after* the last `default_value_for` occurrence.
 
 If your default value is accidentally similar to default_value_for's options hash wrap your default value like this:
 
@@ -552,5 +552,7 @@ I've taken my time to thoroughly document default_value_for's behavior.
 I've wanted such functionality for a while now and it baffled me that ActiveRecord doesn't provide a clean way for me to specify default values. After reading http://groups.google.com/group/rubyonrails-core/browse_thread/thread/b509a2fe2b62ac5/3e8243fa1954a935, it became clear that someone needs to write a plugin. This is the result.
 
 Thanks to Pratik Naik for providing the initial code snippet on which this plugin is based on: http://m.onkey.org/2007/7/24/how-to-set-default-values-in-your-model
+
+Thanks to Matthew Draper for Rails 5 support.
 
 Thanks to Norman Clarke and Tom Mango for Rails 4 support.

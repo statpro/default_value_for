@@ -117,7 +117,7 @@ module DefaultValueFor
 
     def _all_default_attribute_values_not_allowing_nil
       return _default_attribute_values_not_allowing_nil unless superclass.respond_to?(:_default_attribute_values_not_allowing_nil)
-      result = superclass._all_default_attribute_values_not_allowing_nil.concat(_default_attribute_values_not_allowing_nil)
+      result = superclass._all_default_attribute_values_not_allowing_nil + _default_attribute_values_not_allowing_nil
       result.uniq!
       result
     end
@@ -125,6 +125,7 @@ module DefaultValueFor
 
   module InstanceMethods
     def initialize(attributes = nil, options = {})
+      attributes = attributes.to_h if attributes.respond_to?(:to_h)
       @initialization_attributes = attributes.is_a?(Hash) ? attributes.stringify_keys : {}
 
       unless options[:without_protection]
@@ -145,7 +146,9 @@ module DefaultValueFor
     end
 
     def attributes_for_create(attribute_names)
-      attribute_names += _default_attribute_values.keys.map(&:to_s)
+      attribute_names += self.class._all_default_attribute_values.keys.map(&:to_s).find_all { |name|
+        self.class.columns_hash.key?(name)
+      }
       super
     end
 
@@ -155,16 +158,30 @@ module DefaultValueFor
 
         connection_default_value_defined = new_record? && respond_to?("#{attribute}_changed?") && !__send__("#{attribute}_changed?")
 
-        column = self.class.columns.detect {|c| c.name == attribute}
-        attribute_blank = if column && column.type == :boolean
-          attributes[attribute].nil?
-        else
-          attributes[attribute].blank?
-        end
+        attribute_blank = if attributes.has_key?(attribute)
+                            column = self.class.columns_hash[attribute]
+                            if column && column.type == :boolean
+                              attributes[attribute].nil?
+                            else
+                              attributes[attribute].blank?
+                            end
+                          elsif respond_to?(attribute)
+                            send(attribute).nil?
+                          else
+                            instance_variable_get("@#{attribute}").nil?
+                          end
         next unless connection_default_value_defined || attribute_blank
 
         # allow explicitly setting nil through allow nil option
-        next if @initialization_attributes.is_a?(Hash) && @initialization_attributes.has_key?(attribute) && !self.class._all_default_attribute_values_not_allowing_nil.include?(attribute)
+        next if @initialization_attributes.is_a?(Hash) &&
+                (
+                  @initialization_attributes.has_key?(attribute) ||
+                  (
+                    @initialization_attributes.has_key?("#{attribute}_attributes") &&
+                    nested_attributes_options.stringify_keys[attribute]
+                  )
+                ) &&
+                !self.class._all_default_attribute_values_not_allowing_nil.include?(attribute)
 
         __send__("#{attribute}=", container.evaluate(self))
       end
@@ -175,6 +192,6 @@ end
 if defined?(Rails::Railtie)
   require 'default_value_for/railtie'
 else
-  # Rails 2 initialization
+  # For anybody is using AS and AR without Railties, i.e. Padrino.
   ActiveRecord::Base.extend(DefaultValueFor::ClassMethods)
 end
