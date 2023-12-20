@@ -71,7 +71,7 @@ require 'default_value_for'
 puts "\nTesting with Active Record version #{ActiveRecord::VERSION::STRING}"
 puts "\nTesting with Action Pack version #{ActionPack::VERSION::STRING}\n\n"
 
-ActiveRecord::Base.default_timezone = :local
+ActiveRecord.default_timezone = :local
 ActiveRecord::Base.logger           = Logger.new(STDERR)
 ActiveRecord::Base.logger.level     = Logger::WARN
 
